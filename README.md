@@ -8,3 +8,6 @@ Write a program that reads an English message and an integer number (key) from t
 ## Stage 3
 In this stage, you need to support decryption in your program. The decryption is simply the inverse of encryption, following the same steps but reversing the order in which the keys are applied.
 
+## Stage 4
+Modify the previous program to work with command-line arguments instead of the standard input. The program must parse three arguments: **-mode**, **-key** and **-data**. The first argument should determine the program’s mode (**enc** for encryption, **dec** for decryption). The second argument is an integer key to modify the message, and the third argument is a text or ciphertext to encrypt or decrypt.
+
