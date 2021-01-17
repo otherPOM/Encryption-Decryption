@@ -6,6 +6,7 @@ import java.nio.file.InvalidPathException;
 import java.nio.file.Path;
 
 public class Main {
+    private static String alg = "shift";
     private static String mode = "enc";
     private static int key = 0;
     private static String data = "";
@@ -13,10 +14,15 @@ public class Main {
     private static Path out;
 
     public static void main(String[] args) {
+
+        // Parsing arguments
         for (int i = 0; i < args.length; i++) {
             if (i + 1 < args.length) {
                 try {
                     switch (args[i]) {
+                        case "-alg":
+                            alg = args[i + 1];
+                            break;
                         case "-mode":
                             mode = args[i + 1];
                             break;
@@ -44,37 +50,51 @@ public class Main {
                 }
             }
         }
-        String result = "";
+
+        // Setting strategy
+        var context = new Context();
+        switch (alg) {
+            case "shift":
+                context.setStrategy(new ShiftStrategy());
+                break;
+            case "unicode":
+                context.setStrategy(new UnicodeStrategy());
+                break;
+        }
+
+        // Getting data from a file if needed
         try {
             if (in != null && data.equals("")) {
                 data = Files.lines(in).reduce("", (s, s2) -> s + s2);
-                switch (mode) {
-                    case "enc":
-                        result = encrypt(data, key);
-                        break;
-                    case "dec":
-                        result = decrypt(data, key);
-                        break;
-                }
-
-                if (out != null) {
-                    Files.writeString(out, result);
-                } else {
-                    System.out.println(result);
-                }
             }
         } catch (IOException e) {
             System.out.println("Error while opening a file");
+            e.printStackTrace();
+            return;
         }
-    }
 
-    private static String encrypt(String message, int key) {
-        return message.codePoints().map(c -> c + key).collect(StringBuilder::new,
-                StringBuilder::appendCodePoint, StringBuilder::append).toString();
-    }
+        // Executing enc/dec
+        String result = "";
+        switch (mode) {
+            case "enc":
+                result = context.encrypt(data, key);
+                break;
+            case "dec":
+                result = context.decrypt(data, key);
+                break;
+        }
 
-    private static String decrypt(String message, int key) {
-        return message.codePoints().map(c -> c - key).collect(StringBuilder::new,
-                StringBuilder::appendCodePoint, StringBuilder::append).toString();
+        // Writing result to a file or console
+        if (out != null) {
+            try {
+                Files.writeString(out, result);
+            } catch (IOException e) {
+                System.out.println("Error while opening a file");
+                e.printStackTrace();
+                return;
+            }
+        } else {
+            System.out.println(result);
+        }
     }
 }
